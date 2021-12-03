@@ -1,31 +1,15 @@
 import java.io.*;
 import java.util.*;
 
-class MyMap {
-    FileReader currentFile;
-    int offset;
-    int dimension;
-    int givenDim;
-    String words;
-
-    MyMap(FileReader currentFile, int offset, int dimension, String words, int givenDim) {
-        this.currentFile = currentFile;
-        this.offset = offset;
-        this.dimension = dimension;
-        this.words = words;
-        this.givenDim = givenDim;
-    }
-}
-
 class WordsFromFileClass {
     String word;
     int dim;
     FileReader currentFile;
     String mainString;
 
-    WordsFromFileClass(String word, int dim, FileReader currentFile, String mainString) {
+    WordsFromFileClass(String word, FileReader currentFile, String mainString) {
         this.currentFile = currentFile;
-        this.dim = dim;
+        this.dim = word.length();
         this.word = word;
         this.mainString = mainString;
     }
@@ -33,7 +17,7 @@ class WordsFromFileClass {
 
 public class Tema2 {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         if (args.length < 3) {
             System.err.println("Usage: Tema2 <workers> <in_file> <out_file>");
             return;
@@ -45,43 +29,65 @@ public class Tema2 {
         BufferedWriter output = new BufferedWriter(new FileWriter(args[2]));
 
         // citesc din fisierul de input
-        int dimOcteti;
+        int offset;
         int nrDocs;
-        Vector<FileReader> files = new Vector<FileReader>();
+        Vector<String> files = new Vector<String>();
 
-        dimOcteti = Integer.parseInt(input.readLine());
+        offset = Integer.parseInt(input.readLine());
         nrDocs = Integer.parseInt(input.readLine());
         String aux;
         int i = 0;
         while ( (aux = input.readLine()) != null) {
-            files.add(i, new FileReader(aux));
+            files.add(i, aux);
             i++;
         }
 
-        //citire cuvinte din fisiere
         Vector<Vector<WordsFromFileClass>> wordsFromFile = new Vector<>();
-        String delimitatori = new String(";:/?˜.,><‘[]{\\}()!@#$%ˆ&- +’=*”\n\r\t");
-//        Vector<Vector<MyMap>> mapVector =
-
+        MapWorkPool mapWork = new MapWorkPool();//workers
+        Vector<MapWorker> mapWorkers = new Vector<MapWorker>();
+        String separators = ";:/?~\\.,><`[]{}()!@#$%^&-_+'=*\"| \t\r\n";
+        String delimitatori = new String(separators);
         int j;
+
+        //citire cuvinte din fisiere
         for (i = 0; i < nrDocs; i++) {
             j = 0;
-            String mainString = new BufferedReader(files.get(i)).readLine();
+            String mainString = new BufferedReader(new FileReader(files.get(i))).readLine();
             StringTokenizer auxiliary = new StringTokenizer(mainString, delimitatori);
             Vector<WordsFromFileClass> myVect = new Vector<>();
             while(auxiliary.hasMoreTokens()) {
                 String word = auxiliary.nextToken();
-                myVect.add(j, new WordsFromFileClass(word, word.length(), files.get(i), mainString));
+                myVect.add(j, new WordsFromFileClass(word, new FileReader(files.get(i)), mainString));  // prop sparte in tokeni
                 j++;
             }
             wordsFromFile.add(i, myVect);
 
-//            for (int k = 0; k < wordsFromFile.get(i).size(); k++) {
-//                System.out.println(wordsFromFile.get(i).get(k).word+ " " + wordsFromFile.get(i).get(k).dim + " " +
-//                        wordsFromFile.get(i).get(k).currentFile) ;
-//            }
-//            System.out.println();
+            int offsetStart = 0;
+            int finishOffset = offset;
+            int k = 0;
+            File auxFile = new File(files.get(i));
+
+            while(offsetStart < auxFile.length()){
+                // sparge continutul fisierului in fragmente
+                if(finishOffset < auxFile.length()) {
+                    mapWork.addWork(new MapTask(new FileReader(files.get(i)), offsetStart, finishOffset));
+                } else {
+                    mapWork.addWork(new MapTask(new FileReader(files.get(i)), offsetStart, (int) (auxFile.length() - offsetStart)));
+                }
+                offsetStart += offset;
+                finishOffset += offset;
+            }
         }
+
+        for(i = 0; i < workers; i++) {
+            MapWorker workerMap = new MapWorker(mapWork);
+            mapWorkers.add(workerMap);
+//            workerMap.start();
+        }
+//        for( i = 0; i < workers; i++ ) {
+//            mapWorkers.get(i).join();
+//        }
+
 
         input.close();
         output.close();
