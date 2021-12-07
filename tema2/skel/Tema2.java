@@ -1,4 +1,6 @@
 import java.io.*;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.*;
 
 class WordsFromFileClass {
@@ -44,16 +46,22 @@ public class Tema2 {
 
         Vector<Vector<WordsFromFileClass>> wordsFromFile = new Vector<>();
         MapWorkPool mapWork = new MapWorkPool(workers);//workers
+        ReduceWorkPool reduceWork = new ReduceWorkPool(workers);
         HashMap<String, Vector<MapDictionary>> fragmentsTask = new HashMap<String, Vector<MapDictionary>>();
+        HashMap<String, MapDictionary> dictionaryRes = new HashMap<String, MapDictionary>();
         Vector<MapWorker> mapWorkers = new Vector<MapWorker>();
+        Vector<ReduceWorker> reduceWorkers = new Vector<>();
         String separators = ";:/?~\\.,><`[]{}()!@#$%^&-_+'=*\"| \t\r\n";
         String delimitatori = new String(separators);
         int j;
+
+        Vector<Integer> fibonacci = new Vector<Integer>();
 
         //citire cuvinte din fisiere
         for (i = 0; i < nrDocs; i++) {
             j = 0;
             fragmentsTask.put((files.get(i)).toString(), new Vector<MapDictionary>());
+            dictionaryRes.put((files.get(i)).toString(),  new MapDictionary((files.get(i)).toString()));
             String mainString = new BufferedReader(new FileReader(files.get(i))).readLine();
             StringTokenizer auxiliary = new StringTokenizer(mainString, delimitatori);
             Vector<WordsFromFileClass> myVect = new Vector<>();
@@ -81,15 +89,57 @@ public class Tema2 {
             }
         }
 
-        for(i = 0; i < workers; i++) {
+        for(int k = 0; k < workers; k++) {
             MapWorker workerMap = new MapWorker(mapWork, fragmentsTask);
             mapWorkers.add(workerMap);
             workerMap.start();
         }
-        for( i = 0; i < workers; i++ ) {
-            mapWorkers.get(i).join();
+        for( int k = 0; k < workers; k++ ) {
+            mapWorkers.get(k).join();
         }
 
+        for(Map.Entry<String, Vector<MapDictionary>> item : fragmentsTask.entrySet()) {
+            reduceWork.putWork(new ReduceTask(item.getKey(), item.getValue()));
+        }
+
+        for(int k = 0; k < workers; k++) {
+            ReduceWorker workerReduce = new ReduceWorker(reduceWork, dictionaryRes);
+            reduceWorkers.add(workerReduce);
+            workerReduce.start();
+        }
+
+        for(int k = 0; k < workers; k++) {
+            reduceWorkers.get(k).join();
+        }
+
+        fibonacci.add(0); fibonacci.add(1);
+        for(int k = 2; k <= 100; k ++) {
+            fibonacci.add(fibonacci.get(k-2) + fibonacci.get(k-1));
+        }
+
+        for(Map.Entry<String, MapDictionary> item : dictionaryRes.entrySet()) {
+            item.getValue().calcRang(fibonacci);
+        }
+
+        ArrayList<Map.Entry<String, MapDictionary>> finalResults = new ArrayList<Map.Entry<String, MapDictionary>>(dictionaryRes.entrySet());
+        Collections.sort(finalResults, new Comparator<Map.Entry<String, MapDictionary>>() {
+            @Override
+            public int compare(Map.Entry<String, MapDictionary> o1, Map.Entry<String, MapDictionary> o2) {
+                if (o1.getValue().getRang() < o2.getValue().getRang()) {
+                    return 1;
+                } else if (o1.getValue().getRang() > o2.getValue().getRang()) {
+                    return -1;
+                } else {
+                    return o1.getKey().compareTo(o2.getKey());
+                }
+            }
+        });
+
+        for(Map.Entry<String, MapDictionary> item : finalResults) {
+            DecimalFormat myFormat = new DecimalFormat("#.00");
+            myFormat.setRoundingMode(RoundingMode.DOWN);
+            output.write(item.getKey() + "," + myFormat.format(item.getValue().getRang()) + "," + item.getValue().getMaxValue() + "," + item.getValue().getMaxWords().size() + "\n");
+        }
 
         input.close();
         output.close();

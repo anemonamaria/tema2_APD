@@ -21,7 +21,7 @@ public class MapWorker extends Thread{
     }
     //////////////////////////////////////////////
     public String readFragment(MapTask task) throws IOException {
-        String fragment = new String();
+        String fragment;
         RandomAccessFile file = new RandomAccessFile(task.getCurrentFile(), "r");
         file.seek(task.getOffset());
         byte[] fragments = new byte[task.getDimension()];
@@ -42,6 +42,7 @@ public class MapWorker extends Thread{
             }
         }
 
+        // de verificat aici
         //case after fragment
         if( insideWord(fragment.charAt(fragment.length()-1)) ) {
             file.seek(task.offset + task.getDimension());
