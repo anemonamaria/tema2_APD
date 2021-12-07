@@ -1,18 +1,18 @@
 import java.io.FileReader;
 
 public class MapTask {
-    FileReader currentFileName;
+    String currentFileName;
     int offset;  // index
     int dimension;  // offset dim
 
 
-    MapTask(FileReader currentFile, int offset, int dimension) {
+    MapTask(String currentFile, int offset, int dimension) {
         this.currentFileName = currentFile;
         this.offset = offset;
         this.dimension = dimension;
     }
 
-    public FileReader getCurrentFile() {
+    public String getCurrentFile() {
         return currentFileName;
     }
 
@@ -24,7 +24,7 @@ public class MapTask {
         return offset;
     }
 
-    public void setCurrentFile(FileReader currentFile) {
+    public void setCurrentFile(String currentFile) {
         this.currentFileName = currentFile;
     }
 

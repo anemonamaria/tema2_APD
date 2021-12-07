@@ -43,7 +43,8 @@ public class Tema2 {
         }
 
         Vector<Vector<WordsFromFileClass>> wordsFromFile = new Vector<>();
-        MapWorkPool mapWork = new MapWorkPool();//workers
+        MapWorkPool mapWork = new MapWorkPool(workers);//workers
+        HashMap<String, Vector<MapDictionary>> fragmentsTask = new HashMap<String, Vector<MapDictionary>>();
         Vector<MapWorker> mapWorkers = new Vector<MapWorker>();
         String separators = ";:/?~\\.,><`[]{}()!@#$%^&-_+'=*\"| \t\r\n";
         String delimitatori = new String(separators);
@@ -52,6 +53,7 @@ public class Tema2 {
         //citire cuvinte din fisiere
         for (i = 0; i < nrDocs; i++) {
             j = 0;
+            fragmentsTask.put((files.get(i)).toString(), new Vector<MapDictionary>());
             String mainString = new BufferedReader(new FileReader(files.get(i))).readLine();
             StringTokenizer auxiliary = new StringTokenizer(mainString, delimitatori);
             Vector<WordsFromFileClass> myVect = new Vector<>();
@@ -68,11 +70,11 @@ public class Tema2 {
             File auxFile = new File(files.get(i));
 
             while(offsetStart < auxFile.length()){
-                // sparge continutul fisierului in fragmente
+                // sparge continutul fisierului in fragmente si cream task-urile de tip MAP
                 if(finishOffset < auxFile.length()) {
-                    mapWork.addWork(new MapTask(new FileReader(files.get(i)), offsetStart, finishOffset));
+                    mapWork.addWork(new MapTask(files.get(i).toString(), offsetStart, finishOffset));
                 } else {
-                    mapWork.addWork(new MapTask(new FileReader(files.get(i)), offsetStart, (int) (auxFile.length() - offsetStart)));
+                    mapWork.addWork(new MapTask(files.get(i).toString(), offsetStart, (int) (auxFile.length() - offsetStart)));
                 }
                 offsetStart += offset;
                 finishOffset += offset;
@@ -80,13 +82,13 @@ public class Tema2 {
         }
 
         for(i = 0; i < workers; i++) {
-            MapWorker workerMap = new MapWorker(mapWork);
+            MapWorker workerMap = new MapWorker(mapWork, fragmentsTask);
             mapWorkers.add(workerMap);
-//            workerMap.start();
+            workerMap.start();
         }
-//        for( i = 0; i < workers; i++ ) {
-//            mapWorkers.get(i).join();
-//        }
+        for( i = 0; i < workers; i++ ) {
+            mapWorkers.get(i).join();
+        }
 
 
         input.close();
