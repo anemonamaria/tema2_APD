@@ -35,7 +35,7 @@ public class MapWorker extends Thread{
             file.read( fragments );
             if( insideWord( (char)fragments[0] ) ) {
                 int index = 1;
-                while( insideWord( fragment.charAt( index ) ) ) {
+                while(index < fragment.length() && insideWord( fragment.charAt( index ) ) ) {
                     index ++;
                 }
                 fragment = fragment.substring( index );
@@ -44,7 +44,7 @@ public class MapWorker extends Thread{
 
         // de verificat aici
         //case after fragment
-        if( insideWord(fragment.charAt(fragment.length()-1)) ) {
+        if(fragment.length() > 0 && insideWord(fragment.charAt(fragment.length()-1)) ) {
             file.seek(task.offset + task.getDimension());
             fragments = new byte[50];
             if( file.read(fragments) > 0  ) ;
@@ -57,8 +57,6 @@ public class MapWorker extends Thread{
                 fragment += stringToAppend.substring(0, index);
             }
         }
-        // TODO nu cred ca e bine pus aici dictionarul
-        //dictionary.put(fragment.length(), dictionary.get(fragment.length()) + 1); // adaug in dictionar lungimea gasita
         file.close();
 
         return fragment.trim();
@@ -68,11 +66,13 @@ public class MapWorker extends Thread{
         String fragment = readFragment(task);
         StringTokenizer token = new StringTokenizer(fragment, " ;:/?~\\.,><~`[]{}()!@#$%^&-_+'=*\"|\t\n\r");
         MapDictionary solutionOfTask = new MapDictionary(task.getCurrentFile().toString());
+        int idx = 0;
         while( token.hasMoreTokens() ) {
             String currentWord = token.nextToken();
             if( currentWord.length() > 0 ) {
-                solutionOfTask.addWordInDic(currentWord);
+                solutionOfTask.addWordInDic(currentWord, idx);
             }
+            idx ++;
         }
         synchronized (dictionary) {
             Vector<MapDictionary> previousSolutions = dictionary.get(task.getCurrentFile().toString());

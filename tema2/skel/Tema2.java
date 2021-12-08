@@ -51,7 +51,7 @@ public class Tema2 {
         HashMap<String, MapDictionary> dictionaryRes = new HashMap<String, MapDictionary>();
         Vector<MapWorker> mapWorkers = new Vector<MapWorker>();
         Vector<ReduceWorker> reduceWorkers = new Vector<>();
-        String separators = ";:/?~\\.,><`[]{}()!@#$%^&-_+'=*\"| \t\r\n";
+        String separators = ";:/?˜\\.,><‘\\[]\\{}\\(\\)!@#$%ˆ&-'+’=*”|\" \t\n\r\0";
         String delimitatori = new String(separators);
         int j;
 
@@ -112,15 +112,6 @@ public class Tema2 {
             reduceWorkers.get(k).join();
         }
 
-        fibonacci.add(0); fibonacci.add(1);
-        for(int k = 2; k <= 100; k ++) {
-            fibonacci.add(fibonacci.get(k-2) + fibonacci.get(k-1));
-        }
-
-        for(Map.Entry<String, MapDictionary> item : dictionaryRes.entrySet()) {
-            item.getValue().calcRang(fibonacci);
-        }
-
         ArrayList<Map.Entry<String, MapDictionary>> finalResults = new ArrayList<Map.Entry<String, MapDictionary>>(dictionaryRes.entrySet());
         Collections.sort(finalResults, new Comparator<Map.Entry<String, MapDictionary>>() {
             @Override
@@ -138,7 +129,8 @@ public class Tema2 {
         for(Map.Entry<String, MapDictionary> item : finalResults) {
             DecimalFormat myFormat = new DecimalFormat("#.00");
             myFormat.setRoundingMode(RoundingMode.DOWN);
-            output.write(item.getKey() + "," + myFormat.format(item.getValue().getRang()) + "," + item.getValue().getMaxValue() + "," + item.getValue().getMaxWords().size() + "\n");
+            output.write(item.getKey().substring(12) + "," + myFormat.format(item.getValue().getRang()) + ","
+                    + item.getValue().getMaxValue() + "," + item.getValue().getMaxWords().size() + "\n"); //+ ", " + item.getValue().getMaxWords().toString()+
         }
 
         input.close();

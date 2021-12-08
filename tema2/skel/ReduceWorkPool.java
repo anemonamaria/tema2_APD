@@ -32,7 +32,9 @@ public class ReduceWorkPool {
                 waitingThreads--;
             }
         }
-        return tasks.remove();
+        if(!tasks.isEmpty())
+            return tasks.remove();
+        else return null;
     }
 
     synchronized void putWork(ReduceTask task) {
