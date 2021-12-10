@@ -1,6 +1,4 @@
 import java.io.*;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.*;
 
 
@@ -18,69 +16,57 @@ public class Tema2 {
         BufferedWriter output = new BufferedWriter(new FileWriter(args[2]));
 
         // citesc din fisierul de input
-        int offset;
-        int nrDocs;
         Vector<String> files = new Vector<String>();
-
-        offset = Integer.parseInt(input.readLine());
-        nrDocs = Integer.parseInt(input.readLine());
+        int offset = Integer.parseInt(input.readLine());
+        int nrDocs = Integer.parseInt(input.readLine());
         String aux;
         int i = 0;
+
         while ( (aux = input.readLine()) != null) {
             files.add(i, aux);
             i++;
         }
 
-        MapWorkPool mapWork = new MapWorkPool(workers);//workers
+        // declar workerii pe care ii voi folosi
+        MapWorkPool mapWork = new MapWorkPool(workers);
         ReduceWorkPool reduceWork = new ReduceWorkPool(workers);
-        HashMap<String, Vector<MapDictionary>> fragmentsTask = new HashMap<String, Vector<MapDictionary>>();
-        HashMap<String, MapDictionary> dictionaryRes = new HashMap<String, MapDictionary>();
-        Vector<MapWorker> mapWorkers = new Vector<MapWorker>();
+        HashMap<String, Vector<MapDictionary>> fragmentsDic = new HashMap<>();
+        HashMap<String, MapDictionary> dictionaryRes = new HashMap<>();
+        Vector<MapWorker> mapWorkers = new Vector<>();
         Vector<ReduceWorker> reduceWorkers = new Vector<>();
         String separators = ";:/?˜\\.,><‘\\[]\\{}\\(\\)!@#$%ˆ&-'+’=*”|\" \t\n\r\0";
-        int j;
 
-        //citire cuvinte din fisiere
+        //parcurg fisierele de intrare
         for (i = 0; i < nrDocs; i++) {
-            j = 0;
-            fragmentsTask.put((files.get(i)).toString(), new Vector<MapDictionary>());
-            dictionaryRes.put((files.get(i)).toString(),  new MapDictionary((files.get(i)).toString()));
-            String mainString = new BufferedReader(new FileReader(files.get(i))).readLine();
-            StringTokenizer auxiliary = new StringTokenizer(mainString, separators);
-            while(auxiliary.hasMoreTokens()) {
-                String word = auxiliary.nextToken();
-                j++;
-            }
+            fragmentsDic.put((files.get(i)), new Vector<>());
+            dictionaryRes.put((files.get(i)),  new MapDictionary((files.get(i))));
 
             int offsetStart = 0;
             int finishOffset = offset;
-            int k = 0;
-            File auxFile = new File(files.get(i));
 
-            while(offsetStart < auxFile.length()){
-                // sparge continutul fisierului in fragmente si cream task-urile de tip MAP
-                if(finishOffset < auxFile.length()) {
-                    mapWork.addWork(new MapTask(files.get(i), offsetStart, finishOffset - offsetStart));   // TODO aici era fara - offsetStart
-                } else {
-                    mapWork.addWork(new MapTask(files.get(i), offsetStart, (int) (auxFile.length() - offsetStart)));
-                }
+            while(offsetStart < (new File(files.get(i))).length()){
+                // sparge continutul fisierului in fragmente si facem task-urile de tip MAP
+                if(finishOffset < (new File(files.get(i))).length())
+                    mapWork.addWork(new MapTask(files.get(i), offsetStart, finishOffset - offsetStart));
+                else
+                    mapWork.addWork(new MapTask(files.get(i), offsetStart, (int) ((new File(files.get(i))).length() - offsetStart)));
                 offsetStart += offset;
                 finishOffset += offset;
             }
         }
 
         for(int k = 0; k < workers; k++) {
-            MapWorker workerMap = new MapWorker(mapWork, fragmentsTask, k );
+            MapWorker workerMap = new MapWorker(mapWork, fragmentsDic);
             mapWorkers.add(workerMap);
             workerMap.start();
         }
-//        System.out.println(workers);
         for( int k = 0; k < workers; k++ ) {
             mapWorkers.get(k).join();
         }
 
-        for(Map.Entry<String, Vector<MapDictionary>> item : fragmentsTask.entrySet()) {
-            reduceWork.putWork(new ReduceTask(item.getKey(), item.getValue()));
+        for(Map.Entry<String, Vector<MapDictionary>> item : fragmentsDic.entrySet()) {
+            ReduceTask auxReduceTask = new ReduceTask(item.getKey(), item.getValue());
+            reduceWork.addWork(auxReduceTask);
         }
 
         for(int k = 0; k < workers; k++) {
@@ -93,25 +79,22 @@ public class Tema2 {
             reduceWorkers.get(k).join();
         }
 
-        ArrayList<Map.Entry<String, MapDictionary>> finalResults = new ArrayList<Map.Entry<String, MapDictionary>>(dictionaryRes.entrySet());
-        finalResults.sort(new Comparator<Map.Entry<String, MapDictionary>>() {
-            @Override
-            public int compare(Map.Entry<String, MapDictionary> o1, Map.Entry<String, MapDictionary> o2) {
-                if (o1.getValue().getRang() < o2.getValue().getRang()) {
-                    return 1;
-                } else if (o1.getValue().getRang() > o2.getValue().getRang()) {
-                    return -1;
-                } else {
-                    return o1.getKey().compareTo(o2.getKey());
-                }
+        // sortez fisierele
+        Vector<Map.Entry<String, MapDictionary>> finalResults = new Vector<>(dictionaryRes.entrySet());
+        finalResults.sort((o1, o2) -> {
+            if (o1.getValue().rang < o2.getValue().rang) {
+                return 1;
+            } else if (o1.getValue().rang> o2.getValue().rang) {
+                return -1;
+            } else {
+                return o1.getKey().compareTo(o2.getKey());
             }
         });
 
+        // afisez in output rezultatul
         for(Map.Entry<String, MapDictionary> item : finalResults) {
-            DecimalFormat myFormat = new DecimalFormat("#.00");
-            myFormat.setRoundingMode(RoundingMode.DOWN);
-            output.write(item.getKey().substring(12) + "," + myFormat.format(item.getValue().getRang()) + ","
-                    + item.getValue().getMaxValue() + "," + item.getValue().getMaxWords().size() + "\n"); //+ ", " + item.getValue().getMaxWords().toString()+
+            output.write(item.getKey().substring(12) + "," + item.getValue().rang+ ","
+                    + item.getValue().maxValue + "," + item.getValue().maxWords.size() + "\n");
         }
 
         input.close();

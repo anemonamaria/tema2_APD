@@ -1,21 +1,19 @@
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
 public class MapDictionary {
-    private HashMap<Integer, Integer> dictionary;  // lungime si numarul de aparitii
-    private Vector<String> maxWords;
-    private Vector<Integer> indices;
-    private int maxValue;
-    private String fileName;
-    private double rang;
+    final HashMap<Integer, Integer> dictionary;  // lungime si numarul de aparitii
+    final Vector<String> maxWords;
+    final Vector<Integer> indices;
+    int maxValue;
+    final String fileName;
+    double rang;
 
     MapDictionary(String fileName){
-        this.dictionary = new HashMap<Integer, Integer>();
-        this.maxWords = new Vector<String>();
-        this.indices = new Vector<Integer>();
+        this.dictionary = new HashMap<>();
+        this.maxWords = new Vector<>();
+        this.indices = new Vector<>();
         this.maxValue = 0;
         this.fileName = fileName;
         rang = 0;
@@ -27,7 +25,7 @@ public class MapDictionary {
             maxWords.add(myWord);
             indices.add(i);
             maxValue = myWord.length();
-            dictionary.put(myWord.length(), 1);
+            dictionary.put(maxValue, 1);
         } else if (maxValue < myWord.length()) {
             dictionary.put(maxValue, maxWords.size());
             maxValue = myWord.length();
@@ -35,45 +33,42 @@ public class MapDictionary {
             maxWords.add(myWord);
             indices.removeAllElements();
             indices.add(i);
-            dictionary.put(myWord.length(), maxWords.size());
+            dictionary.put(maxValue, maxWords.size());
         } else if (maxValue == myWord.length()) {
             maxWords.add(myWord);
             indices.add(i);
-            dictionary.put(maxValue, maxWords.size());  // trece in3 cu -1  pica celelalte, fara aproape trece in2 dar nu e aproximat corect
+            dictionary.put(maxValue, maxWords.size());
         } else {
             // adaug la pozitia respectiva aparitia cuvantului
             dictionary.merge(myWord.length(), 1, Integer::sum);
-
         }
-//        System.out.println("indice " + i +  " cuvant " + myWord);
     }
-    // TODO VEZI CA AICI CE SE INTAMPLA
-    public void addMapDictionary(MapDictionary newdic) {
+
+    public void addMapDictionary(MapDictionary newDictionary) {
         if(maxWords.size() == 0) {
-            maxWords.addAll(newdic.getMaxWords());
-            //indices.removeAllElements();
-            indices.addAll(newdic.indices);
-            maxValue = newdic.maxValue;
-        } else if (newdic.maxValue > maxValue) {
+            maxWords.addAll(newDictionary.maxWords);
+            indices.addAll(newDictionary.indices);
+            maxValue = newDictionary.maxValue;
+        } else if (newDictionary.maxValue > maxValue) {
             maxWords.removeAllElements();
             indices.removeAllElements();
-            indices.addAll(newdic.indices);
-            maxWords.addAll(newdic.getMaxWords());
-            maxValue = newdic.maxValue;
-        } else if (newdic.maxValue == maxValue) {
-            for (int i = 0; i < newdic.getMaxWords().size(); i++) {
-                if (!maxWords.contains(newdic.getMaxWords().get(i))) {
-                    maxWords.add(newdic.getMaxWords().get(i));
-                    indices.add(newdic.indices.get(i));
+            indices.addAll(newDictionary.indices);
+            maxWords.addAll(newDictionary.maxWords);
+            maxValue = newDictionary.maxValue;
+        } else if (newDictionary.maxValue == maxValue) {
+            for (int i = 0; i < newDictionary.maxWords.size(); i++) {
+                if (!maxWords.contains(newDictionary.maxWords.get(i))) {
+                    maxWords.add(newDictionary.maxWords.get(i));
+                    indices.add(newDictionary.indices.get(i));
                 }
-                if (maxWords.contains(newdic.getMaxWords().get(i))&& !indices.contains(newdic.indices.get(i))) {  //
-                    maxWords.add(newdic.getMaxWords().get(i));
-                    indices.add(newdic.indices.get(i));
+                if (maxWords.contains(newDictionary.maxWords.get(i))&& !indices.contains(newDictionary.indices.get(i))) {
+                    maxWords.add(newDictionary.maxWords.get(i));
+                    indices.add(newDictionary.indices.get(i));
                 }
             }
         }
 
-        for(Map.Entry<Integer, Integer> item : newdic.getDictionary().entrySet()){
+        for(Map.Entry<Integer, Integer> item : newDictionary.dictionary.entrySet()){
             if(dictionary.get(item.getKey()) == null) {
                 if(item.getKey() == maxValue)
                     dictionary.put(maxValue, maxWords.size());
@@ -83,47 +78,8 @@ public class MapDictionary {
                 if(item.getKey() == maxValue)
                     dictionary.put(maxValue, maxWords.size());
                 else
-                    dictionary.put(item.getKey(), dictionary.get(item.getKey()) + item.getValue());   // trece in1 cu -1, pica celelalte
+                    dictionary.put(item.getKey(), dictionary.get(item.getKey()) + item.getValue());
             }
         }
-    }
-
-    public Vector<String> getMaxWords() {
-        return maxWords;
-    }
-
-    public HashMap<Integer, Integer> getDictionary() {
-        return dictionary;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setRang(double rang) {
-        this.rang = rang;
-    }
-
-    @Override
-    public String toString() {
-        return "MapDictionary{" +
-                "dictionary=" + dictionary +
-                ", maxWords=" + maxWords +
-                ", maxValue=" + maxValue +
-                ", fileName='" + fileName + '\'' +
-                ", rang=" + rang +
-                '}';
-    }
-
-    public int getMaxValue() {
-        return maxValue;
-    }
-
-    public double getRang() {
-        return rang;
-    }
-
-    public Vector<Integer> getIndices() {
-        return indices;
     }
 }
