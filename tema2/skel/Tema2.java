@@ -52,10 +52,7 @@ public class Tema2 {
         Vector<MapWorker> mapWorkers = new Vector<MapWorker>();
         Vector<ReduceWorker> reduceWorkers = new Vector<>();
         String separators = ";:/?˜\\.,><‘\\[]\\{}\\(\\)!@#$%ˆ&-'+’=*”|\" \t\n\r\0";
-        String delimitatori = new String(separators);
         int j;
-
-        Vector<Integer> fibonacci = new Vector<Integer>();
 
         //citire cuvinte din fisiere
         for (i = 0; i < nrDocs; i++) {
@@ -63,7 +60,7 @@ public class Tema2 {
             fragmentsTask.put((files.get(i)).toString(), new Vector<MapDictionary>());
             dictionaryRes.put((files.get(i)).toString(),  new MapDictionary((files.get(i)).toString()));
             String mainString = new BufferedReader(new FileReader(files.get(i))).readLine();
-            StringTokenizer auxiliary = new StringTokenizer(mainString, delimitatori);
+            StringTokenizer auxiliary = new StringTokenizer(mainString, separators);
             Vector<WordsFromFileClass> myVect = new Vector<>();
             while(auxiliary.hasMoreTokens()) {
                 String word = auxiliary.nextToken();
@@ -80,9 +77,9 @@ public class Tema2 {
             while(offsetStart < auxFile.length()){
                 // sparge continutul fisierului in fragmente si cream task-urile de tip MAP
                 if(finishOffset < auxFile.length()) {
-                    mapWork.addWork(new MapTask(files.get(i).toString(), offsetStart, finishOffset));
+                    mapWork.addWork(new MapTask(files.get(i), offsetStart, finishOffset));
                 } else {
-                    mapWork.addWork(new MapTask(files.get(i).toString(), offsetStart, (int) (auxFile.length() - offsetStart)));
+                    mapWork.addWork(new MapTask(files.get(i), offsetStart, (int) (auxFile.length() - offsetStart)));
                 }
                 offsetStart += offset;
                 finishOffset += offset;
@@ -113,7 +110,7 @@ public class Tema2 {
         }
 
         ArrayList<Map.Entry<String, MapDictionary>> finalResults = new ArrayList<Map.Entry<String, MapDictionary>>(dictionaryRes.entrySet());
-        Collections.sort(finalResults, new Comparator<Map.Entry<String, MapDictionary>>() {
+        finalResults.sort(new Comparator<Map.Entry<String, MapDictionary>>() {
             @Override
             public int compare(Map.Entry<String, MapDictionary> o1, Map.Entry<String, MapDictionary> o2) {
                 if (o1.getValue().getRang() < o2.getValue().getRang()) {

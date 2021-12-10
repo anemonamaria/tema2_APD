@@ -82,7 +82,6 @@ public class MapWorker extends Thread{
     }
 
     public void run () {
-        // System.out.println("Thread-ul worker " + this.getName() + " a pornit...");
         while(true) {
             MapTask task = mapWork.getWork();
             if( task == null )
@@ -93,7 +92,6 @@ public class MapWorker extends Thread{
                 e.printStackTrace();
             }
         }
-        //System.out.println("Thread-ul worker " + this.getName() + " s-a terminat...");
     }
     ////////////////////////////////////
 }

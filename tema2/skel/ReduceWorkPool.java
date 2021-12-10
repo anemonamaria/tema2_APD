@@ -19,6 +19,7 @@ public class ReduceWorkPool {
             if(waitingThreads == nrOfThreads) {
                 ready = true;
                 notifyAll();
+                return null;
             } else {
                 while (!ready && tasks.size() == 0) {
                     try {
@@ -32,9 +33,7 @@ public class ReduceWorkPool {
                 waitingThreads--;
             }
         }
-        if(!tasks.isEmpty())
-            return tasks.remove();
-        else return null;
+        return tasks.remove();
     }
 
     synchronized void putWork(ReduceTask task) {

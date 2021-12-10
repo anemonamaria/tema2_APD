@@ -16,27 +16,35 @@ public class ReduceWorker extends Thread{
         double rang = 0;
         int totalWords = 0;
         for(Map.Entry<Integer, Integer> item : mapDictionary.getDictionary().entrySet()) {
-//            if (mapDictionary.getFileName().equals())
             if (item.getKey() == mapDictionary.getMaxValue()) {
                 sum = sum + fib.get(mapDictionary.getMaxValue()) * mapDictionary.getMaxWords().size();
                 totalWords += mapDictionary.getMaxWords().size();
+                System.out.println(" max  fib (" + mapDictionary.getMaxValue() + " ) * " +  mapDictionary.getMaxWords().size()  + "  fisierul " + mapDictionary.getFileName()
+                        + " cuv " + mapDictionary.getMaxWords() );
             } else {
                 sum = sum + fib.get(item.getKey()) * item.getValue();
                 if(item.getValue() != 0)
                     totalWords += item.getValue();
+                System.out.println("normal fib (" + item.getKey() + " ) * " +  item.getValue()  + "  fisierul " + mapDictionary.getFileName() + " cuv " + mapDictionary.getMaxWords());
+
             }
         }
         rang = sum / totalWords;
         String.format("%.2f", rang);
-        return rang;
+        System.out.println("rang " +rang + " total w "+ totalWords + " din fisierul " + mapDictionary.getFileName()  );
+
+        if (rang * 100.0 % 5 == 0)
+            return rang;
+        else
+            return Math.round(rang * 100.0) / 100.0;
+
     }
 
     public void processReduceTask(ReduceTask task) {
         MapDictionary myDic = new MapDictionary(task.getFileName().toString());
-        int maxLength;
         //etapa de combinare
         for(MapDictionary item : task.getMapResults()) {
-            maxLength = myDic.addMapDictionary(item);
+            myDic.addMapDictionary(item);
         }
         dictionaryHashMap.put(task.getFileName().toString(), myDic);
 
@@ -45,7 +53,6 @@ public class ReduceWorker extends Thread{
         for(int k = 2; k <= 100; k ++) {
             fibonacci.add(fibonacci.get(k-2) + fibonacci.get(k-1));
         }
-        // todo de facut rangul sa aproximeze bine
         myDic.setRang(calcRang(fibonacci, myDic));
 
     }

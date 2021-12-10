@@ -12,8 +12,9 @@ public class MapWorkPool {
         this.nrOfThreads = nrOfThreads;
     }
 
-    void addWork(MapTask mapTask) {
-        this.tasks.add(mapTask);
+    synchronized void addWork(MapTask mapTask) {
+        tasks.add(mapTask);
+        this.notify();
     }
 
     ////////////////////////
@@ -41,9 +42,5 @@ public class MapWorkPool {
         return tasks.remove();
     }
 
-    synchronized void putWork(MapTask sp){
-        tasks.add(sp);
-        this.notify();
-    }
     ////////////////////////
 }

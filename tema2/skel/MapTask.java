@@ -24,18 +24,6 @@ public class MapTask {
         return offset;
     }
 
-    public void setCurrentFile(String currentFile) {
-        this.currentFileName = currentFile;
-    }
-
-    public void setDimension(int dimension) {
-        this.dimension = dimension;
-    }
-
-    public void setOffset(int offset) {
-        this.offset = offset;
-    }
-
     @Override
     public String toString() {
         return "MapTask{" +
