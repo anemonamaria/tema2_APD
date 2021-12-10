@@ -2,3 +2,42 @@ Moraru Anemona Maria
 333CC
 Algoritmi paraleli si distribuiti
 Tema #2 Procesarea de documente folosind paradigma Map-Reduce
+
+Paradigma Map-Reduce a fost implementata in fisierul Tema2.java. Tema cuprinde
+5 fisiere "Tema2.java", "MapWorker.java" si "ReduceWorker.java" (a caror clase
+extind clasa Thread), "MapDictionary.java" si "WorkPool.java".
+
+In "Tema2.java" initial citesc informatiile din fisierul de intrare. Pentru
+fiecare fisier creez cate un WorkPool in care trimit obiecte de tipul
+MapTask ce retin detaliile specificate in enunt pentru operatiile de
+tip Map. Dupa acesti pasi imi creez si imi pornesc thread-urile pentru
+operatia Map, la terminarea calculelor specifice aceste thread-uri sunt
+inchise si se pornesc cele specifice operatiei de tipul Reduce. Dupa
+calcularea dictionarului, rezultatele sunt comparate in functie de rang
+si apoi sunt scrise in fisierul de output.
+
+In "MapWorker.java" regasim doua clase. Clasa "MapTask" despre care am vorbit
+si clasa "MapWorker" ce extinde Thread. In cea din urma se realizeaza procesarea
+ce presupune adaugarea cuvintelor in dictionare, cuvinte extrase din citirea
+pe fragmente cf. enuntului (daca un fragment incepe in mijlocul unui cuvant
+vom sari peste acel cuvant). Acest lucru il facem verificand daca caracterul
+la care ne aflam este sau nu separator. Numaram cate caractere nu sunt
+separatoare si in functie de acestea reusim sa scurtam fragmentul. Acelasi
+lucru se aplica si pentru completarea fragmentului in cazul in care acesta
+se termina in mijlocul unui cuvant.
+
+De asemenea, in "ReduceWorker.java" regasim doua clase. Clasa "ReduceTask"
+in care se retin informatiile despre un task de tip Reduce si clasa
+"ReduceWorker" ce extinde Thread. In cea din urma se realizeaza cele
+doua etape mentionate in enunt. Etapa de combinare ce uneste micile
+dictionare create de thread-uri si etapa de procesare in care sunt
+calculate rangurile fiecarui fisier.
+
+In clasa "MapDictionary.java" se realizeaza adaugarea de cuvinte intr-un
+dictionar (fie cate un singur cuvant, fie cate un dictionar intreg).
+
+In clasa "WorkPool.java" avem pool-ul de thread-uri pentru fiecare tip de task.
+
+
+
+Aceasta tema a durat aproximativ 14 ore.

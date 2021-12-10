@@ -44,6 +44,7 @@ public class MapDictionary {
         }
     }
 
+    // unesc doua dictionare
     public void addMapDictionary(MapDictionary newDictionary) {
         if(maxWords.size() == 0) {
             maxWords.addAll(newDictionary.maxWords);

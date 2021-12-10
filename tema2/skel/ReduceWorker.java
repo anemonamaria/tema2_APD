@@ -12,51 +12,11 @@ class ReduceTask {
     }
 }
 
-class ReduceWorkPool {
-    Vector<ReduceTask> tasks;
-    int nrOfThreads;
-    int waitingThreads = 0;
-    boolean ready = false;
-
-    public ReduceWorkPool(int nrOfThreads) {
-        this.nrOfThreads = nrOfThreads;
-        tasks = new Vector<>();
-    }
-
-    public synchronized ReduceTask getWork() {
-        if (tasks.size() == 0) {
-            waitingThreads++;
-            if(waitingThreads == nrOfThreads) {
-                ready = true;
-                notifyAll();
-                return null;
-            } else {
-                while (!ready && tasks.size() == 0) {
-                    try {
-                        this.wait();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                if(ready)
-                    return null;
-                waitingThreads--;
-            }
-        }
-        return tasks.remove(0);
-    }
-
-    synchronized void addWork(ReduceTask task) {
-        tasks.add(task);
-        this.notify();
-    }
-}
-
 public class ReduceWorker extends Thread{
-    final ReduceWorkPool reduceWorkPool;
+    final WorkPool reduceWorkPool;
     final HashMap<String, MapDictionary> dictionaryHashMap;
 
-    ReduceWorker(ReduceWorkPool reduceWorkPool, HashMap<String, MapDictionary> dictionaryHashMap) {
+    ReduceWorker(WorkPool reduceWorkPool, HashMap<String, MapDictionary> dictionaryHashMap) {
         this.reduceWorkPool = reduceWorkPool;
         this.dictionaryHashMap = dictionaryHashMap;
     }
@@ -65,14 +25,15 @@ public class ReduceWorker extends Thread{
         float sum = 0;
         double rang = 0;
         int totalWords = 0;
+        // calculez rangul cu formula din enunt
         for(Map.Entry<Integer, Integer> item : mapDictionary.dictionary.entrySet()) {
             if (item.getKey() == mapDictionary.maxValue) {
                 sum = sum + fib.get(mapDictionary.maxValue) * mapDictionary.maxWords.size();
-                totalWords += mapDictionary.maxWords.size();
+                totalWords = totalWords + mapDictionary.maxWords.size();
             } else {
                 sum = sum + fib.get(item.getKey()) * item.getValue();
                 if(item.getValue() != 0)
-                    totalWords += item.getValue();
+                    totalWords = totalWords + item.getValue();
             }
         }
         rang = sum / totalWords;
@@ -87,7 +48,7 @@ public class ReduceWorker extends Thread{
         MapDictionary myDic = new MapDictionary(task.fileName.toString());
         //etapa de combinare
         for(MapDictionary item : task.mapResults) {
-            myDic.addMapDictionary(item);
+            myDic.addMapDictionary(item); // etapa de combinare a dictionarelor partiale
         }
         dictionaryHashMap.put(task.fileName, myDic);
 
@@ -96,12 +57,12 @@ public class ReduceWorker extends Thread{
         for(int k = 2; k <= 100; k ++) {
             fibonacci.add(fibonacci.get(k-2) + fibonacci.get(k-1));
         }
-        myDic.rang = calcRang(fibonacci, myDic);
+        myDic.rang = calcRang(fibonacci, myDic);  // etapa de procesare a calcului rangului
     }
 
     public void run() {
         while (true) {
-            ReduceTask task = reduceWorkPool.getWork();
+            ReduceTask task = reduceWorkPool.getReduceWork();
             if(task == null)
                 break;
             processReduceTask(task);

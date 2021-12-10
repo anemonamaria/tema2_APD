@@ -1,7 +1,6 @@
 import java.io.*;
 import java.util.*;
 
-
 public class Tema2 {
 
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -22,19 +21,18 @@ public class Tema2 {
         String aux;
         int i = 0;
 
-        while ( (aux = input.readLine()) != null) {
+        while ((aux = input.readLine()) != null) {
             files.add(i, aux);
             i++;
         }
 
         // declar workerii pe care ii voi folosi
-        MapWorkPool mapWork = new MapWorkPool(workers);
-        ReduceWorkPool reduceWork = new ReduceWorkPool(workers);
+        WorkPool mapWork = new WorkPool(workers);
+        WorkPool reduceWork = new WorkPool(workers);
         HashMap<String, Vector<MapDictionary>> fragmentsDic = new HashMap<>();
         HashMap<String, MapDictionary> dictionaryRes = new HashMap<>();
         Vector<MapWorker> mapWorkers = new Vector<>();
         Vector<ReduceWorker> reduceWorkers = new Vector<>();
-        String separators = ";:/?˜\\.,><‘\\[]\\{}\\(\\)!@#$%ˆ&-'+’=*”|\" \t\n\r\0";
 
         //parcurg fisierele de intrare
         for (i = 0; i < nrDocs; i++) {
@@ -47,55 +45,55 @@ public class Tema2 {
             while(offsetStart < (new File(files.get(i))).length()){
                 // sparge continutul fisierului in fragmente si facem task-urile de tip MAP
                 if(finishOffset < (new File(files.get(i))).length())
-                    mapWork.addWork(new MapTask(files.get(i), offsetStart, finishOffset - offsetStart));
+                    mapWork.putMapWork(new MapTask(files.get(i), offsetStart, finishOffset - offsetStart));
                 else
-                    mapWork.addWork(new MapTask(files.get(i), offsetStart, (int) ((new File(files.get(i))).length() - offsetStart)));
+                    mapWork.putMapWork(new MapTask(files.get(i), offsetStart, (int) ((new File(files.get(i))).length() - offsetStart)));
                 offsetStart += offset;
                 finishOffset += offset;
             }
         }
 
+        // pornim thread-urile de MAP
+        Vector<MapWorker> workerMap = new Vector<>();
         for(int k = 0; k < workers; k++) {
-            MapWorker workerMap = new MapWorker(mapWork, fragmentsDic);
-            mapWorkers.add(workerMap);
-            workerMap.start();
-        }
-        for( int k = 0; k < workers; k++ ) {
-            mapWorkers.get(k).join();
+            workerMap.add(new MapWorker(mapWork, fragmentsDic));
+            mapWorkers.add(workerMap.get(k));
+            workerMap.get(k).start();
         }
 
+        for( int k = 0; k < workers; k++ )
+            mapWorkers.get(k).join();
+        // le inchidem inainte sa le pornim pe cele de REDUCE
         for(Map.Entry<String, Vector<MapDictionary>> item : fragmentsDic.entrySet()) {
             ReduceTask auxReduceTask = new ReduceTask(item.getKey(), item.getValue());
-            reduceWork.addWork(auxReduceTask);
+            reduceWork.putReduceWork(auxReduceTask);
         }
 
+        // pornim thread-urile de REDUCE
+        Vector<ReduceWorker> workerReduce = new Vector<>();
         for(int k = 0; k < workers; k++) {
-            ReduceWorker workerReduce = new ReduceWorker(reduceWork, dictionaryRes);
-            reduceWorkers.add(workerReduce);
-            workerReduce.start();
+            workerReduce.add(new ReduceWorker(reduceWork, dictionaryRes));
+            reduceWorkers.add(workerReduce.get(k));
+            workerReduce.get(k).start();
         }
 
-        for(int k = 0; k < workers; k++) {
+        for(int k = 0; k < workers; k++)
             reduceWorkers.get(k).join();
-        }
 
         // sortez fisierele
         Vector<Map.Entry<String, MapDictionary>> finalResults = new Vector<>(dictionaryRes.entrySet());
         finalResults.sort((o1, o2) -> {
-            if (o1.getValue().rang < o2.getValue().rang) {
+            if (o1.getValue().rang < o2.getValue().rang)
                 return 1;
-            } else if (o1.getValue().rang> o2.getValue().rang) {
+            else if (o1.getValue().rang> o2.getValue().rang)
                 return -1;
-            } else {
+            else
                 return o1.getKey().compareTo(o2.getKey());
-            }
         });
 
         // afisez in output rezultatul
-        for(Map.Entry<String, MapDictionary> item : finalResults) {
-            output.write(item.getKey().substring(12) + "," + item.getValue().rang+ ","
-                    + item.getValue().maxValue + "," + item.getValue().maxWords.size() + "\n");
-        }
+        for(Map.Entry<String, MapDictionary> item : finalResults)
+            output.write(item.getKey().substring(12) + "," + item.getValue().rang+ "," + item.getValue().maxValue + "," + item.getValue().maxWords.size() + "\n");
 
         input.close();
         output.close();
