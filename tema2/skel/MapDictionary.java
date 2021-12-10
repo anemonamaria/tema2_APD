@@ -33,22 +33,25 @@ public class MapDictionary {
             maxValue = myWord.length();
             maxWords.removeAllElements();
             maxWords.add(myWord);
+            indices.removeAllElements();
             indices.add(i);
             dictionary.put(myWord.length(), maxWords.size());
         } else if (maxValue == myWord.length()) {
             maxWords.add(myWord);
+            indices.add(i);
             dictionary.put(maxValue, maxWords.size());  // trece in3 cu -1  pica celelalte, fara aproape trece in2 dar nu e aproximat corect
         } else {
             // adaug la pozitia respectiva aparitia cuvantului
             dictionary.merge(myWord.length(), 1, Integer::sum);
 
         }
+//        System.out.println("indice " + i +  " cuvant " + myWord);
     }
     // TODO VEZI CA AICI CE SE INTAMPLA
     public void addMapDictionary(MapDictionary newdic) {
         if(maxWords.size() == 0) {
             maxWords.addAll(newdic.getMaxWords());
-            indices.removeAllElements();
+            //indices.removeAllElements();
             indices.addAll(newdic.indices);
             maxValue = newdic.maxValue;
         } else if (newdic.maxValue > maxValue) {
@@ -61,11 +64,11 @@ public class MapDictionary {
             for (int i = 0; i < newdic.getMaxWords().size(); i++) {
                 if (!maxWords.contains(newdic.getMaxWords().get(i))) {
                     maxWords.add(newdic.getMaxWords().get(i));
-                    indices.add(i);
+                    indices.add(newdic.indices.get(i));
                 }
-                if (maxWords.contains(newdic.getMaxWords().get(i)) && !indices.contains(i)) {
+                if (maxWords.contains(newdic.getMaxWords().get(i))&& !indices.contains(newdic.indices.get(i))) {  //
                     maxWords.add(newdic.getMaxWords().get(i));
-                    indices.add(i);
+                    indices.add(newdic.indices.get(i));
                 }
             }
         }
@@ -118,5 +121,9 @@ public class MapDictionary {
 
     public double getRang() {
         return rang;
+    }
+
+    public Vector<Integer> getIndices() {
+        return indices;
     }
 }

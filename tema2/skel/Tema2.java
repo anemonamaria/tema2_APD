@@ -3,19 +3,6 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 
-class WordsFromFileClass {
-    String word;
-    int dim;
-    FileReader currentFile;
-    String mainString;
-
-    WordsFromFileClass(String word, FileReader currentFile, String mainString) {
-        this.currentFile = currentFile;
-        this.dim = word.length();
-        this.word = word;
-        this.mainString = mainString;
-    }
-}
 
 public class Tema2 {
 
@@ -44,7 +31,6 @@ public class Tema2 {
             i++;
         }
 
-        Vector<Vector<WordsFromFileClass>> wordsFromFile = new Vector<>();
         MapWorkPool mapWork = new MapWorkPool(workers);//workers
         ReduceWorkPool reduceWork = new ReduceWorkPool(workers);
         HashMap<String, Vector<MapDictionary>> fragmentsTask = new HashMap<String, Vector<MapDictionary>>();
@@ -61,13 +47,10 @@ public class Tema2 {
             dictionaryRes.put((files.get(i)).toString(),  new MapDictionary((files.get(i)).toString()));
             String mainString = new BufferedReader(new FileReader(files.get(i))).readLine();
             StringTokenizer auxiliary = new StringTokenizer(mainString, separators);
-            Vector<WordsFromFileClass> myVect = new Vector<>();
             while(auxiliary.hasMoreTokens()) {
                 String word = auxiliary.nextToken();
-                myVect.add(j, new WordsFromFileClass(word, new FileReader(files.get(i)), mainString));  // prop sparte in tokeni
                 j++;
             }
-            wordsFromFile.add(i, myVect);
 
             int offsetStart = 0;
             int finishOffset = offset;
@@ -77,7 +60,7 @@ public class Tema2 {
             while(offsetStart < auxFile.length()){
                 // sparge continutul fisierului in fragmente si cream task-urile de tip MAP
                 if(finishOffset < auxFile.length()) {
-                    mapWork.addWork(new MapTask(files.get(i), offsetStart, finishOffset));
+                    mapWork.addWork(new MapTask(files.get(i), offsetStart, finishOffset - offsetStart));   // TODO aici era fara - offsetStart
                 } else {
                     mapWork.addWork(new MapTask(files.get(i), offsetStart, (int) (auxFile.length() - offsetStart)));
                 }
@@ -87,10 +70,11 @@ public class Tema2 {
         }
 
         for(int k = 0; k < workers; k++) {
-            MapWorker workerMap = new MapWorker(mapWork, fragmentsTask);
+            MapWorker workerMap = new MapWorker(mapWork, fragmentsTask, k );
             mapWorkers.add(workerMap);
             workerMap.start();
         }
+//        System.out.println(workers);
         for( int k = 0; k < workers; k++ ) {
             mapWorkers.get(k).join();
         }

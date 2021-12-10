@@ -19,19 +19,20 @@ public class ReduceWorker extends Thread{
             if (item.getKey() == mapDictionary.getMaxValue()) {
                 sum = sum + fib.get(mapDictionary.getMaxValue()) * mapDictionary.getMaxWords().size();
                 totalWords += mapDictionary.getMaxWords().size();
-                System.out.println(" max  fib (" + mapDictionary.getMaxValue() + " ) * " +  mapDictionary.getMaxWords().size()  + "  fisierul " + mapDictionary.getFileName()
-                        + " cuv " + mapDictionary.getMaxWords() );
+//                System.out.println(" max  fib (" + mapDictionary.getMaxValue() + " ) * " +  mapDictionary.getMaxWords().size()  + "  fisierul " + mapDictionary.getFileName()
+//                        + " cuv " + mapDictionary.getMaxWords() + " indici " + mapDictionary.getIndices() );
             } else {
                 sum = sum + fib.get(item.getKey()) * item.getValue();
                 if(item.getValue() != 0)
                     totalWords += item.getValue();
-                System.out.println("normal fib (" + item.getKey() + " ) * " +  item.getValue()  + "  fisierul " + mapDictionary.getFileName() + " cuv " + mapDictionary.getMaxWords());
+//                System.out.println("normal fib (" + item.getKey() + " ) * " +  item.getValue()  + "  fisierul " + mapDictionary.getFileName() + " cuv " + mapDictionary.getMaxWords()
+//                        + " indici " + mapDictionary.getIndices() );
 
             }
         }
         rang = sum / totalWords;
         String.format("%.2f", rang);
-        System.out.println("rang " +rang + " total w "+ totalWords + " din fisierul " + mapDictionary.getFileName()  );
+//        System.out.println("rang " +rang + " total w "+ totalWords + " din fisierul " + mapDictionary.getFileName()  );
 
         if (rang * 100.0 % 5 == 0)
             return rang;
