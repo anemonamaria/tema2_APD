@@ -56,13 +56,14 @@ public class Tema2 {
         // pornim thread-urile de MAP
         Vector<MapWorker> workerMap = new Vector<>();
         for(int k = 0; k < workers; k++) {
-            workerMap.add(new MapWorker(mapWork, fragmentsDic));
+            workerMap.add(new MapWorker(fragmentsDic, mapWork));
             mapWorkers.add(workerMap.get(k));
             workerMap.get(k).start();
         }
 
-        for( int k = 0; k < workers; k++ )
+        for(int k = 0; k < workers; k++)
             mapWorkers.get(k).join();
+
         // le inchidem inainte sa le pornim pe cele de REDUCE
         for(Map.Entry<String, Vector<MapDictionary>> item : fragmentsDic.entrySet()) {
             ReduceTask auxReduceTask = new ReduceTask(item.getKey(), item.getValue());
@@ -83,10 +84,12 @@ public class Tema2 {
         // sortez fisierele
         Vector<Map.Entry<String, MapDictionary>> finalResults = new Vector<>(dictionaryRes.entrySet());
         finalResults.sort((o1, o2) -> {
-            if (o1.getValue().rang < o2.getValue().rang)
-                return 1;
-            else if (o1.getValue().rang> o2.getValue().rang)
+            double rang1 = o1.getValue().rang;
+            double rang2 = o2.getValue().rang;
+            if (rang1 > rang2)
                 return -1;
+            else if (rang1 < rang2)
+                return 1;
             else
                 return o1.getKey().compareTo(o2.getKey());
         });
